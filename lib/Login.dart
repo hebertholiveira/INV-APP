@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:crypto/crypto.dart';
 
+import 'Configurar.dart';
 import 'Glob.dart';
 import 'Home.dart';
 
@@ -14,7 +15,8 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
 
-  String sUrl = Global.UrlApiCad;
+
+
   TextEditingController _controllerEmail = TextEditingController();
   TextEditingController _controllerSenha = TextEditingController();
   String _mensagemErro = "";
@@ -27,9 +29,9 @@ class _LoginState extends State<Login> {
 
   }
 
-  CallApiAuth(String sUser, String sPass) async
+ /* CallApiAuth(String sUser, String sPass) async
   {
-    print("resposta: "+ sUrl+'/auth');
+    print("resposta: "+ _sUrl+'/auth');
     Map<String, String> map_headers = {
       'Content-Type': "application/json",
       'user': sUser,
@@ -37,7 +39,7 @@ class _LoginState extends State<Login> {
       'bek': "200"};
 
     http.Response response = await http.get(
-      sUrl + '/auth',
+      _sUrl + '/auth',
       // Send authorization headers to the backend.
       headers:map_headers
     ) ;
@@ -46,12 +48,14 @@ class _LoginState extends State<Login> {
     //Map<String, dynamic> retorno =  json.decode(response.body);
     //print("resposta: " + retorno["name"]);
 
-  }
+  }*/
 
   _LogarUser() async
   {
       try
       {
+        String _sUrl = await Global().GetUrls(1);
+        print("@SIS "+ _sUrl);
           //Recupera dados dos campos
           String email = _controllerEmail.text;
           String senha = _controllerSenha.text;
@@ -77,7 +81,7 @@ class _LoginState extends State<Login> {
             'bek': "200"};
 
           http.Response response = await http.get(
-              sUrl + '/auth',
+              _sUrl + '/auth',
               // Send authorization headers to the backend.
               headers: map_headers
           ).timeout(const Duration(seconds: 10));
@@ -142,12 +146,23 @@ class _LoginState extends State<Login> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Padding(
+                GestureDetector(
+                  onLongPress: ()
+                  {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => Configurar()
+                        )
+                    );
+                  },
+                  child: Padding(
                     padding: EdgeInsets.only(bottom: 32),
-                  child:  Image.asset(
-                    "images/logo_box.png",
-                    width: 200,
-                    height: 150,
+                    child:  Image.asset(
+                      "images/logo_box.png",
+                      width: 200,
+                      height: 150,
+                    ),
                   ),
                 ),
                 Padding(

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'Glob.dart';
 class CallAPI
 {
-  String sUrl = Global.UrlApiCad;
+  String sUrl = Global().GetUrls(1);
 
   Future<http.Response> findInv(String InvId, String sUser, String sToken) async
   {

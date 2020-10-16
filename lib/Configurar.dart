@@ -1,0 +1,113 @@
+import 'package:flutter/material.dart';
+
+import 'sqliteDao/daoSqliteConfig.dart';
+import 'sqliteDao/mConfig.dart';
+
+class Configurar extends StatefulWidget {
+  @override
+  _ConfigurarState createState() => _ConfigurarState();
+}
+
+class _ConfigurarState extends State<Configurar> {
+
+  String _mensagem="";
+  TextEditingController _controllerUrl01 = TextEditingController();
+  TextEditingController _controllerUrl02 = TextEditingController();
+
+  _validar() async
+  {
+    var list = await daoSqliteConfig().getConfig();
+
+    if(list == null)
+    {
+      mConfig newConf = mConfig();
+      newConf.url1 = "http://0.0.0.0:0000/inventario-cad/v1";
+      newConf.url2 = "http://0.0.0.0:0000/inventario-cad/v1";
+
+      await daoSqliteConfig().newConfig(newConf);
+    }else{
+      setState(() {
+        _controllerUrl01.text = list.url1;
+        _controllerUrl02.text = list.url2;
+      });
+    }
+  }
+
+  _ConfigurarState()
+  {
+    _validar();
+  }
+
+  _UpdateConfig() async
+  {
+    await daoSqliteConfig().updateClient(_controllerUrl01.text, _controllerUrl02.text);
+    setState(() {
+      _mensagem = "Alteração realizada com sucesso!";
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Configuração'),
+        backgroundColor: Colors.red,
+      ),
+      body: Container(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(top: 25),
+              child: Center(
+                child: Text(
+                  _mensagem,
+                  style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 20
+                  ),
+                ),
+              ),
+            ),
+            TextField(
+              controller: _controllerUrl01,
+              autofocus: true,
+              keyboardType: TextInputType.url,
+              decoration: InputDecoration(
+                  labelText: "URL 01"
+              ),
+            ),
+            TextField(
+              controller: _controllerUrl02,
+              autofocus: true,
+              keyboardType: TextInputType.url,
+              decoration: InputDecoration(
+                  labelText: "URL 02"
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 16, bottom: 10),
+              child: RaisedButton(
+                child: Text(
+                  "Salvar",
+                  style: TextStyle(color: Colors.white, fontSize: 20),
+                ),
+                color: Colors.blue,
+                padding: EdgeInsets.fromLTRB(32, 16, 32, 30),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(32)
+                ),
+                onPressed: (){
+                  setState(() {
+                    _UpdateConfig();
+                  });
+                },
+              ),
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+}
