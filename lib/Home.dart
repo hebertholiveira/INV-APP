@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'CallAPI.dart';
 import 'dart:convert';
 
+import 'InvetarioOperacao.dart';
+
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
@@ -17,6 +19,13 @@ class _HomeState extends State<Home> {
     var response = await CallAPI().findInv("9", "xx", "x");
 
     print("Resposta "+ json.decode(response.body).toString());
+
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => InventarioOperacao()
+        )
+    );
   }
 
   @override
@@ -32,6 +41,7 @@ class _HomeState extends State<Home> {
           children: <Widget>[
             TextField(
               controller: _controllerCodigoInv,
+              autofocus: true,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: "Digite o Codigo do inventário"

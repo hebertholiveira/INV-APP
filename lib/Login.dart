@@ -50,65 +50,72 @@ class _LoginState extends State<Login> {
 
   _LogarUser() async
   {
-    //Recupera dados dos campos
-    String email = _controllerEmail.text;
-    String senha = _controllerSenha.text;
-
-      if(email.isEmpty)
+      try
       {
+          //Recupera dados dos campos
+          String email = _controllerEmail.text;
+          String senha = _controllerSenha.text;
+
+          if (email.isEmpty) {
+            setState(() {
+              _mensagemErro = "Preencha o E-Mail";
+            });
+            return;
+          }
+          if (senha.isEmpty) {
+            setState(() {
+              _mensagemErro = "Preencha a senha";
+            });
+            return;
+          }
+          String sSenhaCryp = _Cryptografia(senha.trim());
+
+          Map<String, String> map_headers = {
+            'Content-Type': "application/json",
+            'user': email,
+            'bak': sSenhaCryp,
+            'bek': "200"};
+
+          http.Response response = await http.get(
+              sUrl + '/auth',
+              // Send authorization headers to the backend.
+              headers: map_headers
+          ).timeout(const Duration(seconds: 10));
+
+          print("resposta: " + response.statusCode.toString());
+          if (response.statusCode.toString() == "401") {
+            setState(() {
+              _mensagemErro = "Acesso não autorizado";
+            });
+            return;
+          }
+
+          if (response.statusCode.toString() != "200") {
+            setState(() {
+              _mensagemErro = "Erro ao acessar o servidor";
+            });
+            return;
+          }
+
+
+          Map<String, dynamic> retorno = json.decode(response.body);
+          print("resposta: " + retorno["idusuario"].toString());
+
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => Home()
+              )
+          );
+      } on Exception catch (exception) {
         setState(() {
-          _mensagemErro = "Preencha o E-Mail";
+          _mensagemErro = exception.toString();
         });
-        return;
-      }
-      if(senha.isEmpty)
-      {
+      } catch (error) {
         setState(() {
-          _mensagemErro = "Preencha a senha";
+          _mensagemErro = error.toString();
         });
-        return;
       }
-      String sSenhaCryp = _Cryptografia(senha.trim());
-
-      Map<String, String> map_headers = {
-      'Content-Type': "application/json",
-      'user': email,
-      'bak': sSenhaCryp,
-      'bek': "200"};
-
-     http.Response response = await http.get(
-        sUrl + '/auth',
-        // Send authorization headers to the backend.
-        headers:map_headers
-     ) ;
-    print("resposta: " + response.statusCode.toString());
-     if(response.statusCode.toString() == "401")
-     {
-       setState(() {
-         _mensagemErro = "Acesso não autorizado";
-       });
-       return;
-     }
-
-    if(response.statusCode.toString() != "200")
-    {
-      setState(() {
-        _mensagemErro = "Erro ao acessar o servidor";
-      });
-      return;
-    }
-
-
-    Map<String, dynamic> retorno =  json.decode(response.body);
-    print("resposta: " + retorno["idusuario"].toString());
-
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => Home()
-        )
-    );
-
   }
 
 
@@ -151,7 +158,7 @@ class _LoginState extends State<Login> {
                       keyboardType: TextInputType.emailAddress,
                       style: TextStyle(fontSize: 20),
                       decoration: InputDecoration(
-                           hintText: "E-Mail",
+                           hintText: "E-Mail.",
                            border: OutlineInputBorder(
                              borderRadius: BorderRadius.circular(32)
                            ),
@@ -188,7 +195,7 @@ class _LoginState extends State<Login> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(32)
                     ),
-                    onPressed: (){
+                    onPressed: () {
                       _LogarUser();
                       },
                   ),
