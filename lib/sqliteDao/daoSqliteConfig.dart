@@ -7,7 +7,7 @@ import 'mConfig.dart';
 class daoSqliteConfig
 {
   static Database _database;
-  static final _databaseName = "bwinv.db";
+  static final _databaseName = "bwinv2.db";
 
   Future<Database> get database async {
     if (_database != null)
@@ -31,15 +31,34 @@ class daoSqliteConfig
         });
   }
 
+/*
+  initDB() async {
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, _databaseName);
+    return await openDatabase(path, version: 1,
+        onOpen: (db) {},
+        onCreate: (Database db, int version) async {
+          await db.execute("CREATE TABLE config ("
+              "url1 TEXT,"
+              "url2 TEXT"
+              ")");
+        });
+  }*/
+
   Future<mConfig> getConfig() async {
       final db = await database;
+
       var res = await db.rawQuery("SELECT * FROM config LIMIT 1");
 
-      mConfig c = mConfig();
-      c.url1= res[0]["url1"];
-      c.url2= res[0]["url2"];
+      if( res.length >0)
+      {
+        mConfig c = mConfig();
+        c.url1 = res[0]["url1"];
+        c.url2 = res[0]["url2"];
 
-      return c;
+        return c;
+      }
+      return null;
      /* List<mConfig> list =
       res.isNotEmpty ? res.toList().map((c) => mConfig.fromMap(c)) : null;
       return list;*/

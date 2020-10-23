@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'InvetarioOperacao.dart';
+
 
 class SelecaoEndereco extends StatefulWidget {
 
@@ -14,8 +16,14 @@ class _SelecaoEnderecoState extends State<SelecaoEndereco> {
   TextEditingController _controllerEndereco = TextEditingController();
   String _mensagemErro="";
 
-  _ValidaEndreco()
+  _ValidaEndreco() async
   {
+   Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => InventarioOperacao()
+        )
+    );
 
   }
   @override
@@ -46,15 +54,16 @@ class _SelecaoEnderecoState extends State<SelecaoEndereco> {
               autofocus: true,
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
-                  labelText: "Digite o Codigo do inventário"
+                  labelText: "Digite um endereço"
               ),
-              onSubmitted: _ValidaEndreco(),
+             // onSubmitted: _ValidaEndreco(),
             ),
             Padding(
               padding: EdgeInsets.only(top: 16, bottom: 10),
               child: RaisedButton(
                 child: Text(
                   "Continuar",
+
                   style: TextStyle(color: Colors.white, fontSize: 20),
                 ),
                 color: Colors.orange,

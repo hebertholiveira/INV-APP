@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'sqliteDao/daoSqliteConfig.dart';
 import 'sqliteDao/mConfig.dart';
@@ -11,25 +14,46 @@ class Configurar extends StatefulWidget {
 class _ConfigurarState extends State<Configurar> {
 
   String _mensagem="";
+  String _diretorioApp="";
   TextEditingController _controllerUrl01 = TextEditingController();
   TextEditingController _controllerUrl02 = TextEditingController();
 
   _validar() async
   {
-    var list = await daoSqliteConfig().getConfig();
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    setState(() {
+      _diretorioApp=documentsDirectory.path;
+    });
 
-    if(list == null)
+    try
     {
-      mConfig newConf = mConfig();
-      newConf.url1 = "http://0.0.0.0:0000/inventario-cad/v1";
-      newConf.url2 = "http://0.0.0.0:0000/inventario-cad/v1";
+        var list = await daoSqliteConfig().getConfig();
 
-      await daoSqliteConfig().newConfig(newConf);
-    }else{
-      setState(() {
-        _controllerUrl01.text = list.url1;
-        _controllerUrl02.text = list.url2;
-      });
+        if(list == null)
+        {
+          mConfig newConf = mConfig();
+          newConf.url1 = "http://0.0.0.0:0000/inventario-cad/v1";
+          newConf.url2 = "http://0.0.0.0:0000/inventario-cad/v1";
+          print("@SYS INSERT");
+          await daoSqliteConfig().newConfig(newConf);
+          setState(() {
+            _controllerUrl01.text = newConf.url1;
+            _controllerUrl02.text = newConf.url2;
+          });
+        }else{
+          setState(() {
+            _controllerUrl01.text = list.url1;
+            _controllerUrl02.text = list.url2;
+          });
+        }
+    } on Exception catch (exception) {
+    setState(() {
+      _mensagem = exception.toString();
+    });
+    } catch (error) {
+    setState(() {
+      _mensagem = error.toString();
+    });
     }
   }
 
@@ -40,10 +64,21 @@ class _ConfigurarState extends State<Configurar> {
 
   _UpdateConfig() async
   {
-    await daoSqliteConfig().updateClient(_controllerUrl01.text, _controllerUrl02.text);
+    try
+    {
+        await daoSqliteConfig().updateClient(_controllerUrl01.text, _controllerUrl02.text);
+        setState(() {
+          _mensagem = "Alteração realizada com sucesso!";
+        });
+    } on Exception catch (exception) {
     setState(() {
-      _mensagem = "Alteração realizada com sucesso!";
+    _mensagem = exception.toString();
     });
+    } catch (error) {
+    setState(() {
+    _mensagem = error.toString();
+    });
+    }
   }
 
   @override
@@ -104,7 +139,18 @@ class _ConfigurarState extends State<Configurar> {
                 },
               ),
             ),
-
+            Padding(
+              padding: EdgeInsets.only(top: 25),
+              child: Center(
+                child: Text(
+                  _diretorioApp,
+                  style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 20
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

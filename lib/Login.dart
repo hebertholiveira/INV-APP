@@ -209,7 +209,7 @@ class _LoginState extends State<Login> {
                   padding: EdgeInsets.only(top: 16, bottom: 10),
                   child: RaisedButton(
                     child: Text(
-                      "Entrar",
+                      "Entrar+",
                       style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
                     color: Colors.orange,
