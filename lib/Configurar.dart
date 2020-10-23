@@ -89,6 +89,7 @@ class _ConfigurarState extends State<Configurar> {
         backgroundColor: Colors.red,
       ),
       body: Container(
+
         padding: EdgeInsets.all(16),
         child: Column(
           children: <Widget>[

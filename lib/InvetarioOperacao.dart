@@ -8,9 +8,14 @@ class InventarioOperacao extends StatefulWidget {
 
 class _InventarioOperacaoState extends State<InventarioOperacao> {
 
+  var focusNodeProduto = new FocusNode();
   var focusNodeQtd = new FocusNode();
+  var focusNodeLote = new FocusNode();
+  var focusNodeValdiade = new FocusNode();
   TextEditingController _controllerCodigoProduto = TextEditingController();
   TextEditingController _controllerQtdProduto = TextEditingController();
+  TextEditingController _controllerLote = TextEditingController();
+  TextEditingController _controllerValidade = TextEditingController();
 
   startScanner() async
   {
@@ -31,6 +36,7 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
         backgroundColor: Colors.green,
       ),
       body: Container(
+      //  constraints: BoxConstraints(minWidth: 100, maxWidth: 100),
         padding: EdgeInsets.all(32),
         child: Column(
           children: <Widget>[
@@ -54,6 +60,8 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
               ),
             ),
             TextField(
+              autofocus: true,
+              focusNode: focusNodeProduto,
               controller: _controllerCodigoProduto,
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
@@ -72,7 +80,24 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
               ),
 
             ),
+            TextField(
+              focusNode: focusNodeLote,
+              controller: _controllerLote,
+              keyboardType: TextInputType.text,
+              decoration: InputDecoration(
+                  labelText: "Lote"
+              ),
 
+            ),
+            TextField(
+              focusNode: focusNodeValdiade,
+              controller: _controllerValidade,
+              keyboardType: TextInputType.text,
+              decoration: InputDecoration(
+                  labelText: "Validade"
+              ),
+
+            ),
 
           ],
         ),
