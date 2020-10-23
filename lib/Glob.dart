@@ -1,12 +1,15 @@
 import 'package:bigwhoinventario/sqliteDao/daoSqliteConfig.dart';
 import 'package:bigwhoinventario/sqliteDao/mConfig.dart';
 
+import 'sqliteDao/mUsuario.dart';
+
 class Global {
 
-  String _UrlApiCad="http://0.0.0.0:0000/inventario-cad/v1";
+   static var objUser = new mUsuario();
 
   GetUrls(int iUrl) async
   {
+    String _UrlApiCad="http://0.0.0.0:0000/inventario-cad/v1";
     var list = await daoSqliteConfig().getConfig();
 
     if(list != null)

@@ -3,10 +3,11 @@ import 'package:http/http.dart' as http;
 import 'Glob.dart';
 class CallAPI
 {
-  String sUrl = Global().GetUrls(1);
 
-  Future<http.Response> findInv(String InvId, String sUser, String sToken) async
+
+  findInv(String InvId, String sUser, String sToken) async
   {
+      String sUrl = await Global().GetUrls(1);
       Map<String, String> map_headers = {
         'Content-Type': "application/json",
         'user': sUser,

@@ -1,8 +1,10 @@
+import 'package:bigwhoinventario/SelecaoEndereco.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'CallAPI.dart';
 import 'dart:convert';
 
+import 'Glob.dart';
 import 'InvetarioOperacao.dart';
 
 class Home extends StatefulWidget {
@@ -11,21 +13,61 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
   TextEditingController _controllerCodigoInv = TextEditingController();
+  String _mensagemErro="";
+
   _findInvetario() async
   {
-    http.Response resp;
-    var response = await CallAPI().findInv("9", "xx", "x");
 
-    print("Resposta "+ json.decode(response.body).toString());
+      print("@SIS HOME 0");
+        var response = await CallAPI().findInv(_controllerCodigoInv.text, Global.objUser.ID, Global.objUser.Token);
+        print("@SIS HOME 1");
+        if (response.statusCode.toString() == "404") {
+          setState(() {
+            _mensagemErro = "Inventário não encontrado";
+          });
+          return;
+        }
 
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => InventarioOperacao()
-        )
-    );
+        if (response.statusCode.toString() == "401") {
+          setState(() {
+            _mensagemErro = "Acesso não autorizado";
+          });
+          return;
+        }
+
+        if (response.statusCode.toString() != "200") {
+          setState(() {
+            _mensagemErro = "Busca apresentou inconsistência";
+          });
+          return;
+        }
+
+        Map<String, dynamic> retorno = json.decode(response.body);
+
+      if(retorno["statusID"].toString() == "5")
+      {
+        setState(() {
+          _mensagemErro = "Inventário já  se encontra FINALIZADO.";
+        });
+        return;
+      }
+
+      if(retorno["statusID"].toString() != "3")
+      {
+            setState(() {
+              _mensagemErro = "Inventário não se encontra no Status: EM INVENTÁRIO";
+            });
+            return;
+      }
+
+      Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => SelecaoEndereco(retorno["idinventario"].toString())
+            )
+        );
+
   }
 
   @override
@@ -33,12 +75,24 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         title: Text("HOME"),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.red,
       ),
       body: Container(
         padding: EdgeInsets.all(32),
         child: Column(
           children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(top: 16),
+              child: Center(
+                child: Text(
+                  _mensagemErro,
+                  style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 20
+                  ),
+                ),
+              ),
+            ),
             TextField(
               controller: _controllerCodigoInv,
               autofocus: true,

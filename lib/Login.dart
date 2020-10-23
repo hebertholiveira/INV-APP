@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'Configurar.dart';
 import 'Glob.dart';
 import 'Home.dart';
+import 'sqliteDao/mUsuario.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -16,10 +17,14 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
 
 
-
   TextEditingController _controllerEmail = TextEditingController();
   TextEditingController _controllerSenha = TextEditingController();
   String _mensagemErro = "";
+
+  _LoginState(){
+  _controllerEmail.text="Wender";
+  _controllerSenha.text = "12345";
+  }
 
   String _Cryptografia(String sSenha)
   {
@@ -103,8 +108,10 @@ class _LoginState extends State<Login> {
 
 
           Map<String, dynamic> retorno = json.decode(response.body);
-          print("resposta: " + retorno["idusuario"].toString());
+          //print("@SIS " + retorno["idusuario"].toString());
 
+          Global.objUser.ID = retorno["idusuario"].toString();
+          Global.objUser.Token = "xx";
           Navigator.push(
               context,
               MaterialPageRoute(
