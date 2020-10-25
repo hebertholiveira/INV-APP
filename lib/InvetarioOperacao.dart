@@ -1,5 +1,12 @@
+import 'dart:convert';
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+
+import 'Glob.dart';
+import 'sqliteDao/mBipagem.dart';
 
 class InventarioOperacao extends StatefulWidget {
   String sInvetarioID;
@@ -22,10 +29,14 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
   var focusNodeQtd = new FocusNode();
   var focusNodeLote = new FocusNode();
   var focusNodeValdiade = new FocusNode();
+  var focusNodeNumeroSerial = new FocusNode();
   TextEditingController _controllerCodigoProduto = TextEditingController();
   TextEditingController _controllerQtdProduto = TextEditingController();
   TextEditingController _controllerLote = TextEditingController();
   TextEditingController _controllerValidade = TextEditingController();
+  TextEditingController _controllerNumeroSerial = TextEditingController();
+  TextEditingController _controllerUnidadeMedida = TextEditingController();
+
 
   startScanner() async
   {
@@ -35,7 +46,43 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
     setState(() {
       _controllerCodigoProduto.text=barcodeScanRes;
     });
-    print("@SIS "+ barcodeScanRes);
+    _inputBipagem();
+  }
+
+  _inputBipagem()
+  {
+    try{
+    if(_controllerQtdProduto.text == "" )
+    {
+      _controllerQtdProduto.text="1";
+    }
+
+    mBipagem c = new mBipagem();
+    c.codigoproduto=_controllerCodigoProduto.text.trim();
+    c.contagem= int.parse(widget.sContagemAtual);
+    c.enderecoid =int.parse(widget.sEnderecoID);
+    c.inventarioid = int.parse(widget.sInvetarioID.trim());
+    c.lote=_controllerLote.text.trim();
+    c.qtd = int.parse(_controllerQtdProduto.text);
+    c.serie = _controllerNumeroSerial.text.trim();
+    c.ua = null;
+    c.unidadeMedida = _controllerUnidadeMedida.text.trim();
+    c.userID = int.parse(Global.objUser.ID);
+    c.validade=null;
+
+    var mapBipag = c.toJson();
+    var jsonz = json.encode(mapBipag);
+    print("@SYS aqui" + jsonz);
+    } on Exception catch (exception) {
+      setState(() {
+        print("@SYS aqui" + exception.toString()) ;
+      });
+    } catch (error) {
+      setState(() {
+        print("@SYS aqui" + error.toString());
+      });
+    }
+
   }
 
   @override
@@ -49,7 +96,7 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
       body:  SingleChildScrollView(
         child: Container(
           //  constraints: BoxConstraints(minWidth: 100, maxWidth: 100),
-          padding: EdgeInsets.all(32),
+          padding: EdgeInsets.all(20),
           child: Column(
             children: <Widget>[
               Padding(
@@ -113,18 +160,32 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
                 controller: _controllerCodigoProduto,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
-                    labelText: "Codigo do Produto"
+                    labelText: "Código do Produto"
                 ),
                 onSubmitted: (String value){
-                  focusNodeQtd.requestFocus();
+                  _inputBipagem();
+                 // focusNodeQtd.requestFocus();
                 },
               ),
               TextField(
                 focusNode: focusNodeQtd,
                 controller: _controllerQtdProduto,
-                keyboardType: TextInputType.text,
+                keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly,
+               //   FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                ],
                 decoration: InputDecoration(
                     labelText: "Quantidade"
+                ),
+
+              ),
+              TextField(
+                focusNode: focusNodeNumeroSerial,
+                controller: _controllerNumeroSerial,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                    labelText: "Número serial"
                 ),
 
               ),
@@ -146,7 +207,23 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
                 ),
 
               ),
-
+              Padding(
+                padding: EdgeInsets.only(top: 16, bottom: 10),
+                child: RaisedButton(
+                  child: Text(
+                    "Processar",
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                  color: Colors.orange,
+                  padding: EdgeInsets.fromLTRB(32, 16, 32, 30),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32)
+                  ),
+                  onPressed: (){
+                    _inputBipagem();
+                  },
+                ),
+              ),
             ],
           ),
         ),

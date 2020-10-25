@@ -78,7 +78,7 @@ class _LoginState extends State<Login> {
         });
 
         String _sUrl = await Global().GetUrls(1);
-        print("@SIS "+ _sUrl);
+
           //Recupera dados dos campos
           String email = _controllerEmail.text;
           String senha = _controllerSenha.text;
@@ -109,7 +109,7 @@ class _LoginState extends State<Login> {
               headers: map_headers
           ).timeout(const Duration(seconds: 10));
 
-          print("resposta: " + response.statusCode.toString());
+        //  print("resposta: " + response.statusCode.toString());
           if (response.statusCode.toString() == "401") {
             setState(() {
               _mensagemErro = "Acesso não autorizado";
@@ -126,7 +126,7 @@ class _LoginState extends State<Login> {
 
 
           Map<String, dynamic> retorno = json.decode(response.body);
-          print("@SYS " + retorno["token"].toString());
+         // print("@SYS " + retorno["token"].toString());
 
           Global.objUser.ID = retorno["idusuario"].toString();
           Global.objUser.Token = retorno["token"].toString();
