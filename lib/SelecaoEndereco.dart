@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
+import 'CallAPI.dart';
+import 'Glob.dart';
 import 'InvetarioOperacao.dart';
 
 
@@ -18,12 +22,54 @@ class _SelecaoEnderecoState extends State<SelecaoEndereco> {
 
   _ValidaEndreco() async
   {
-   Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => InventarioOperacao()
-        )
-    );
+    setState(() {
+      _mensagemErro = "";
+    });
+     var response = await CallAPI().findEndereco(widget.sInvetarioID, _controllerEndereco.text, Global.objUser.ID, Global.objUser.Token);
+
+     if (response.statusCode.toString() == "500") {
+       setState(() {
+         _mensagemErro = "Erro";
+       });
+       return;
+     }
+
+     if (response.statusCode.toString() == "404") {
+       setState(() {
+         _mensagemErro = "Endereço não encontrado";
+       });
+       return;
+     }
+
+     if (response.statusCode.toString() == "401") {
+       setState(() {
+         _mensagemErro = "Acesso não autorizado";
+       });
+       return;
+     }
+
+     Map<String, dynamic> retorno = json.decode(response.body);
+     if (response.statusCode.toString() == "403") {
+       setState(() {
+         _mensagemErro = retorno["mensagem"].toString();
+       });
+       return;
+     }
+
+     if (response.statusCode.toString() != "200") {
+       setState(() {
+         _mensagemErro = "Busca apresentou inconsistência";
+       });
+       return;
+     }
+
+
+     Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => InventarioOperacao(widget.sInvetarioID, retorno["idendereco"].toString(), retorno["contagem"].toString(),_controllerEndereco.text.toUpperCase())
+          )
+      );
 
   }
   @override
@@ -56,7 +102,12 @@ class _SelecaoEnderecoState extends State<SelecaoEndereco> {
               decoration: InputDecoration(
                   labelText: "Digite um endereço"
               ),
-             // onSubmitted: _ValidaEndreco(),
+              onSubmitted: (String value){_ValidaEndreco();},
+              style: TextStyle(
+                  fontSize: 20.0,
+                  height: 2.0,
+                  color: Colors.black
+              ),
             ),
             Padding(
               padding: EdgeInsets.only(top: 16, bottom: 10),

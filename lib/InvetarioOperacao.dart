@@ -2,6 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 class InventarioOperacao extends StatefulWidget {
+  String sInvetarioID;
+  String sEnderecoID;
+  String sContagemAtual;
+  String sEndereco;
+  InventarioOperacao(
+      this.sInvetarioID,
+      this.sEnderecoID,
+      this.sContagemAtual,
+      this.sEndereco
+      );
   @override
   _InventarioOperacaoState createState() => _InventarioOperacaoState();
 }
@@ -31,75 +41,114 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+     // resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text("BIPAGEM"),
         backgroundColor: Colors.green,
       ),
-      body: Container(
-      //  constraints: BoxConstraints(minWidth: 100, maxWidth: 100),
-        padding: EdgeInsets.all(32),
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.only(top: 16, bottom: 10),
-              child: RaisedButton(
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.camera)
-                  ],
+      body:  SingleChildScrollView(
+        child: Container(
+          //  constraints: BoxConstraints(minWidth: 100, maxWidth: 100),
+          padding: EdgeInsets.all(32),
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(top: 5, bottom: 5),
+                child: RaisedButton(
+                  child: Row(
+                    children: <Widget>[
+                      Icon(Icons.camera)
+                    ],
 
+                  ),
+                  color: Colors.orange,
+                  // padding: EdgeInsets.fromLTRB(32, 16, 32, 30),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32)
+                  ),
+                  onPressed: (){
+                    startScanner();
+                  },
                 ),
-                color: Colors.orange,
-               // padding: EdgeInsets.fromLTRB(32, 16, 32, 30),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(32)
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Center(
+                  child: Text(
+                    "Inventário: ${widget.sInvetarioID}",
+                    style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 15
+                    ),
+                  ),
                 ),
-                onPressed: (){
-                  startScanner();
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Center(
+                  child: Text(
+                    "Endereço: ${widget.sEndereco}",
+                    style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 15
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Center(
+                  child: Text(
+                    "Contagem atual: ${widget.sContagemAtual}",
+                    style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 15
+                    ),
+                  ),
+                ),
+              ),
+              TextField(
+                autofocus: true,
+                focusNode: focusNodeProduto,
+                controller: _controllerCodigoProduto,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                    labelText: "Codigo do Produto"
+                ),
+                onSubmitted: (String value){
+                  focusNodeQtd.requestFocus();
                 },
               ),
-            ),
-            TextField(
-              autofocus: true,
-              focusNode: focusNodeProduto,
-              controller: _controllerCodigoProduto,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                  labelText: "Codigo do Produto"
-              ),
-              onSubmitted: (String value){
-                focusNodeQtd.requestFocus();
-              },
-            ),
-            TextField(
-              focusNode: focusNodeQtd,
-              controller: _controllerQtdProduto,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                  labelText: "Quantidade"
-              ),
+              TextField(
+                focusNode: focusNodeQtd,
+                controller: _controllerQtdProduto,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                    labelText: "Quantidade"
+                ),
 
-            ),
-            TextField(
-              focusNode: focusNodeLote,
-              controller: _controllerLote,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                  labelText: "Lote"
+              ),
+              TextField(
+                focusNode: focusNodeLote,
+                controller: _controllerLote,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                    labelText: "Lote"
+                ),
+
+              ),
+              TextField(
+                focusNode: focusNodeValdiade,
+                controller: _controllerValidade,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                    labelText: "Validade"
+                ),
+
               ),
 
-            ),
-            TextField(
-              focusNode: focusNodeValdiade,
-              controller: _controllerValidade,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                  labelText: "Validade"
-              ),
-
-            ),
-
-          ],
+            ],
+          ),
         ),
       ),
     );

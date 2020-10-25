@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:crypto/crypto.dart';
 
@@ -24,6 +24,20 @@ class _LoginState extends State<Login> {
   _LoginState(){
   _controllerEmail.text="Wender";
   _controllerSenha.text = "12345";
+  /*DateTime now = DateTime.now();
+  String formattedDate = DateFormat('yyyy-MM-dd – HH:mm').format(now);*/
+
+
+  }
+
+  String _TokenAuth()
+  {
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('14dd10MMyyyyHH2020').format(now);
+    var bytes = utf8.encode(formattedDate); // data being hashed
+
+    return sha256.convert(bytes).toString();
+
   }
 
   String _Cryptografia(String sSenha)
@@ -59,6 +73,10 @@ class _LoginState extends State<Login> {
   {
       try
       {
+        setState(() {
+          _mensagemErro = "";
+        });
+
         String _sUrl = await Global().GetUrls(1);
         print("@SIS "+ _sUrl);
           //Recupera dados dos campos
@@ -83,7 +101,7 @@ class _LoginState extends State<Login> {
             'Content-Type': "application/json",
             'user': email,
             'bak': sSenhaCryp,
-            'bek': "200"};
+            'bek': _TokenAuth()};
 
           http.Response response = await http.get(
               _sUrl + '/auth',
@@ -108,10 +126,10 @@ class _LoginState extends State<Login> {
 
 
           Map<String, dynamic> retorno = json.decode(response.body);
-          //print("@SIS " + retorno["idusuario"].toString());
+          print("@SYS " + retorno["token"].toString());
 
           Global.objUser.ID = retorno["idusuario"].toString();
-          Global.objUser.Token = "xx";
+          Global.objUser.Token = retorno["token"].toString();
           Navigator.push(
               context,
               MaterialPageRoute(

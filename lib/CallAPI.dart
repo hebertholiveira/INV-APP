@@ -21,4 +21,21 @@ class CallAPI
       return response;
   }
 
+  findEndereco(String InvId, String sEndreco, String sUser, String sToken) async
+  {
+    String sUrl = await Global().GetUrls(1);
+    Map<String, String> map_headers = {
+      'Content-Type': "application/json",
+      'user': sUser,
+      'token': sToken,
+      'endereco': sEndreco};
+
+    http.Response response = await http.get(
+        sUrl + '/endereco/'+InvId,
+        // Send authorization headers to the backend.
+        headers:map_headers
+    ) ;
+    return response;
+  }
+
 }

@@ -18,10 +18,12 @@ class _HomeState extends State<Home> {
 
   _findInvetario() async
   {
+        setState(() {
+          _mensagemErro = "";
+        });
 
-      print("@SIS HOME 0");
         var response = await CallAPI().findInv(_controllerCodigoInv.text, Global.objUser.ID, Global.objUser.Token);
-        print("@SIS HOME 1");
+
         if (response.statusCode.toString() == "404") {
           setState(() {
             _mensagemErro = "Inventário não encontrado";
@@ -94,12 +96,15 @@ class _HomeState extends State<Home> {
               ),
             ),
             TextField(
+
               controller: _controllerCodigoInv,
               autofocus: true,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: "Digite o Codigo do inventário"
               ),
+              onSubmitted: (String value){_findInvetario();},
+
 
             ),
             Padding(
