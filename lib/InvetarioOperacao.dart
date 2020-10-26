@@ -7,6 +7,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 import 'CallAPI.dart';
 import 'Glob.dart';
+import 'SelecaoEndereco.dart';
 import 'auxiliar.dart';
 import 'sqliteDao/mBipagem.dart';
 
@@ -56,6 +57,9 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
   }
   _MsgAlertErro(String sMsg, bool isErro)
   {
+    if(sMsg.length>30)
+      sMsg = sMsg.substring(0,29);
+
     setState(() {
       _mensagemErro = sMsg +" "+ new auxiliar().getDateTimeNow();
       if(isErro)
@@ -69,6 +73,41 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
     });
 
   }
+  _finalizarContagemSair() async
+  {
+    String sRet = await _finalizarContagem();
+    print("@SYS SAIR 22");
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SelecaoEndereco(widget.sInvetarioID.trim(), sRet)),
+    );
+  }
+
+  _finalizarContagem() async
+  {
+    try
+    {
+        var response = await CallAPI().finalizarEndereco(widget.sEnderecoID, Global.objUser.Token, Global.objUser.ID, widget.sInvetarioID.trim());
+
+        if (response.statusCode.toString() == "200")
+        {
+          return null;
+        }
+        else if ( response.statusCode.toString() != "403") {
+          return  "Ocorreu um erro na solicitação";
+        }else{
+          Map<String, dynamic> retorno = json.decode(response.body);
+          return retorno["mensagem"].toString();
+        }
+
+    } on Exception catch (exception) {
+      return "Ocorreu um erro  crítico na solicitação";
+    } catch (error) {
+      return "Ocorreu um erro crítico na solicitação";
+    }
+  }
+
+
   _inputBipagem() async
   {
     try{
@@ -109,6 +148,11 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
            return;
         }
 
+        if (response.statusCode.toString() != "200" && response.statusCode.toString() != "403") {
+          _MsgAlertErro("Busca apresentou inconsistência",true);
+          return;
+        }
+
         Map<String, dynamic> retorno = json.decode(response.body);
         if (response.statusCode.toString() == "403") {
           _MsgAlertErro(retorno["mensagem"].toString(),true);
@@ -117,10 +161,7 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
           return;
         }
 
-        if (response.statusCode.toString() != "200") {
-          _MsgAlertErro("Busca apresentou inconsistência",true);
-           return;
-        }
+
         _MsgAlertErro(retorno["mensagem"].toString(),false);
         setState(() {
           sQtdReturn = retorno["qtdbipada"].toString();
@@ -164,155 +205,214 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
 
   }
 
+  _voltarForm()
+  {
+    // BuildContext dialogContext;
+    showDialog(
+      context: context,
+      builder: (context) => new AlertDialog(
+
+        title: new Text('O que deseja fazer?'),
+       // content: new Text('O que deseja fazer?'),
+        actions: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(top: 1),
+            child: Center(
+              child:  new FlatButton(
+                onPressed: () {
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SelecaoEndereco(widget.sInvetarioID.trim(),null)),
+                  );
+                },
+                child: new Text('Sair e NÃO finalizar a contagem.'),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 30),
+            child: Center(
+              child:  new FlatButton(
+                onPressed: () {
+                  _finalizarContagemSair();
+                },
+                child: new Text('Sair e finalizar a contagem.'),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 30),
+            child: Center(
+              child:  new FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: new Text('Não desejo sair.'),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-     // resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: Text("I: ${widget.sInvetarioID} C: ${widget.sContagemAtual}-${widget.sEndereco}"),
-        backgroundColor: ColoForm,
-      ),
-      body:  SingleChildScrollView(
-        child: Container(
-          //  constraints: BoxConstraints(minWidth: 100, maxWidth: 100),
-          padding: EdgeInsets.all(20),
-          child: Column(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(top: 5, bottom: 5),
-                child: RaisedButton(
-                  child: Row(
-                    children: <Widget>[
-                      Icon(Icons.camera)
-                    ],
+    return new WillPopScope(
+      onWillPop: () async {
+        _voltarForm();
+        return false;
+      },
+      child: Scaffold(
+        // resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          title: Text("I: ${widget.sInvetarioID} C: ${widget.sContagemAtual}-${widget.sEndereco}"),
+          backgroundColor: ColoForm,
+          actions: [],
 
+        ),
+        body:  SingleChildScrollView(
+          child: Container(
+            //  constraints: BoxConstraints(minWidth: 100, maxWidth: 100),
+            padding: EdgeInsets.all(20),
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(top: 5, bottom: 5),
+                  child: RaisedButton(
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.camera)
+                      ],
+
+                    ),
+                    color: Colors.orange,
+                    // padding: EdgeInsets.fromLTRB(32, 16, 32, 30),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(32)
+                    ),
+                    onPressed: (){
+                      startScanner();
+                    },
                   ),
-                  color: Colors.orange,
-                  // padding: EdgeInsets.fromLTRB(32, 16, 32, 30),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32)
-                  ),
-                  onPressed: (){
-                    startScanner();
-                  },
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 1),
-                child: Center(
-                  child: Text(
-                    _mensagemErro,
-                    style: TextStyle(
-                        color: ColoMsg,
-                        fontSize: 15
+                Padding(
+                  padding: EdgeInsets.only(top: 1),
+                  child: Center(
+                    child: Text(
+                      _mensagemErro,
+                      style: TextStyle(
+                          color: ColoMsg,
+                          fontSize: 15
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 1),
-                child: Center(
-                  child: Text(
-                    "Qtd: " + sQtdReturn,
-                    style: TextStyle(
-                        color: ColoMsg,
-                        fontSize: 12
+                Padding(
+                  padding: EdgeInsets.only(top: 1),
+                  child: Center(
+                    child: Text(
+                      "Qtd: " + sQtdReturn,
+                      style: TextStyle(
+                          color: ColoMsg,
+                          fontSize: 12
+                      ),
                     ),
                   ),
                 ),
-              ),
-              TextField(
-                autofocus: true,
-                focusNode: focusNodeProduto,
-                controller: _controllerCodigoProduto,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                    labelText: "Código do Produto"
-                ),
-                onSubmitted: (String value){
-                  _inputBipagem();
-                },
-              ),
-              TextField(
-                focusNode: focusNodeQtd,
-                controller: _controllerQtdProduto,
-                keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly,
-               //   FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
-                ],
-                decoration: InputDecoration(
-                    labelText: "Quantidade"
-                ),
-                onSubmitted: (String value){
-                  _inputBipagem();
-                },
-              ),
-              TextField(
-                focusNode: focusUnidadeMedida,
-                controller: _controllerUnidadeMedida,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                    labelText: "Unidade de medida"
-                ),
-                onSubmitted: (String value){
-                  _inputBipagem();
-                },
-              ),
-              TextField(
-                focusNode: focusNodeNumeroSerial,
-                controller: _controllerNumeroSerial,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                    labelText: "Número serial"
-                ),
-                onSubmitted: (String value){
-                  _inputBipagem();
-                },
-              ),
-              TextField(
-                focusNode: focusNodeLote,
-                controller: _controllerLote,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                    labelText: "Lote"
-                ),
-                onSubmitted: (String value){
-                  _inputBipagem();
-                },
-              ),
-              TextField(
-                focusNode: focusNodeValdiade,
-                controller: _controllerValidade,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                    labelText: "Validade"
-                ),
-                onSubmitted: (String value){
-                  _inputBipagem();
-                },
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 16, bottom: 10),
-                child: RaisedButton(
-                  child: Text(
-                    "Processar",
-                    style: TextStyle(color: Colors.white, fontSize: 20),
+                TextField(
+                  autofocus: true,
+                  focusNode: focusNodeProduto,
+                  controller: _controllerCodigoProduto,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      labelText: "Código do Produto"
                   ),
-                  color: Colors.orange,
-                  padding: EdgeInsets.fromLTRB(32, 16, 32, 30),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32)
-                  ),
-                  onPressed: (){
+                  onSubmitted: (String value){
                     _inputBipagem();
                   },
                 ),
-              ),
-            ],
+                TextField(
+                  focusNode: focusNodeQtd,
+                  controller: _controllerQtdProduto,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly,
+                    //   FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                  ],
+                  decoration: InputDecoration(
+                      labelText: "Quantidade"
+                  ),
+                  onSubmitted: (String value){
+                    _inputBipagem();
+                  },
+                ),
+                TextField(
+                  focusNode: focusUnidadeMedida,
+                  controller: _controllerUnidadeMedida,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      labelText: "Unidade de medida"
+                  ),
+                  onSubmitted: (String value){
+                    _inputBipagem();
+                  },
+                ),
+                TextField(
+                  focusNode: focusNodeNumeroSerial,
+                  controller: _controllerNumeroSerial,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      labelText: "Número serial"
+                  ),
+                  onSubmitted: (String value){
+                    _inputBipagem();
+                  },
+                ),
+                TextField(
+                  focusNode: focusNodeLote,
+                  controller: _controllerLote,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      labelText: "Lote"
+                  ),
+                  onSubmitted: (String value){
+                    _inputBipagem();
+                  },
+                ),
+                TextField(
+                  focusNode: focusNodeValdiade,
+                  controller: _controllerValidade,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                      labelText: "Validade"
+                  ),
+                  onSubmitted: (String value){
+                    _inputBipagem();
+                  },
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 16, bottom: 10),
+                  child: RaisedButton(
+                    child: Text(
+                      "Processar",
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                    color: Colors.orange,
+                    padding: EdgeInsets.fromLTRB(32, 16, 32, 30),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(32)
+                    ),
+                    onPressed: (){
+                      _inputBipagem();
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
+      )
     );
   }
 }

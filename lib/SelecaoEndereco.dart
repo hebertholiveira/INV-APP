@@ -10,15 +10,32 @@ import 'InvetarioOperacao.dart';
 class SelecaoEndereco extends StatefulWidget {
 
   String sInvetarioID;
-  SelecaoEndereco(this.sInvetarioID);
+  String sAlerta;
+  SelecaoEndereco(this.sInvetarioID, [this.sAlerta]);
   @override
   _SelecaoEnderecoState createState() => _SelecaoEnderecoState();
+
 }
 
 class _SelecaoEnderecoState extends State<SelecaoEndereco> {
 
   TextEditingController _controllerEndereco = TextEditingController();
   String _mensagemErro="";
+
+  _SelecaoEnderecoState()
+  {
+    /*if("widget.sInvetarioID" != null)
+      {
+        showDialog(
+          context: context,
+          builder: (context) => new AlertDialog(
+
+            title: new Text('O que deseja fazer?'),
+
+          ),
+        );
+      }*/
+  }
 
   _ValidaEndreco() async
   {
@@ -74,6 +91,7 @@ class _SelecaoEnderecoState extends State<SelecaoEndereco> {
   }
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text("SELECIONE UM ENDEREÇO"),
@@ -143,5 +161,6 @@ class _SelecaoEnderecoState extends State<SelecaoEndereco> {
         ),
       ),
     );
+
   }
 }

@@ -54,4 +54,20 @@ class CallAPI
     return response;
   }
 
+
+  finalizarEndereco(String sIdEndereco, String sToken, String sUserid, String sInventarioID) async
+  {
+    String sUrl = await Global().GetUrls(2);
+    Map<String, String> map_headers = {
+      'Content-Type': "application/json",
+      'token': sToken,
+      'user':sUserid,
+      'invenatrioid': sInventarioID};
+
+    http.Response response = await http.put(
+        sUrl + '/endereco/finalizarcontagem/'+sIdEndereco,
+        headers:map_headers
+    );
+    return response;
+  }
 }
