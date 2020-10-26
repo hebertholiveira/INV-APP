@@ -38,18 +38,16 @@ class CallAPI
     return response;
   }
 
-  biparIntem(String InvId, String sEndreco, String sUser, String sToken) async
+  biparIntem(String sJson, String sToken) async
   {
-    String sUrl = await Global().GetUrls(1);
+    String sUrl = await Global().GetUrls(2);
     Map<String, String> map_headers = {
       'Content-Type': "application/json",
-      'user': sUser,
-      'token': sToken,
-      'endereco': sEndreco};
+      'token': sToken};
 
     http.Response response = await http.post(
-        sUrl + '/endereco/'+InvId,
-        body: "",
+        sUrl + '/bipagem',
+        body: sJson,
         // Send authorization headers to the backend.
         headers:map_headers
     ) ;

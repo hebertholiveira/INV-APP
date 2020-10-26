@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
+import 'CallAPI.dart';
 import 'Glob.dart';
+import 'auxiliar.dart';
 import 'sqliteDao/mBipagem.dart';
 
 class InventarioOperacao extends StatefulWidget {
@@ -25,18 +27,22 @@ class InventarioOperacao extends StatefulWidget {
 
 class _InventarioOperacaoState extends State<InventarioOperacao> {
 
+  String sQtdReturn="-";
+  String _mensagemErro="";
   var focusNodeProduto = new FocusNode();
   var focusNodeQtd = new FocusNode();
   var focusNodeLote = new FocusNode();
   var focusNodeValdiade = new FocusNode();
   var focusNodeNumeroSerial = new FocusNode();
+  var focusUnidadeMedida  = new FocusNode();
   TextEditingController _controllerCodigoProduto = TextEditingController();
   TextEditingController _controllerQtdProduto = TextEditingController();
   TextEditingController _controllerLote = TextEditingController();
   TextEditingController _controllerValidade = TextEditingController();
   TextEditingController _controllerNumeroSerial = TextEditingController();
   TextEditingController _controllerUnidadeMedida = TextEditingController();
-
+  Color ColoMsg = Colors.black;
+  Color ColoForm = Colors.green;
 
   startScanner() async
   {
@@ -48,40 +54,113 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
     });
     _inputBipagem();
   }
+  _MsgAlertErro(String sMsg, bool isErro)
+  {
+    setState(() {
+      _mensagemErro = sMsg +" "+ new auxiliar().getDateTimeNow();
+      if(isErro)
+      {
+          ColoMsg = Colors.red;
+          ColoForm = ColoMsg;
+      }else{
+        ColoMsg = Colors.green;
+        ColoForm = ColoMsg;
+      }
+    });
 
-  _inputBipagem()
+  }
+  _inputBipagem() async
   {
     try{
-    if(_controllerQtdProduto.text == "" )
-    {
-      _controllerQtdProduto.text="1";
-    }
+        setState(() {
+          _mensagemErro = "";
+        });
 
-    mBipagem c = new mBipagem();
-    c.codigoproduto=_controllerCodigoProduto.text.trim();
-    c.contagem= int.parse(widget.sContagemAtual);
-    c.enderecoid =int.parse(widget.sEnderecoID);
-    c.inventarioid = int.parse(widget.sInvetarioID.trim());
-    c.lote=_controllerLote.text.trim();
-    c.qtd = int.parse(_controllerQtdProduto.text);
-    c.serie = _controllerNumeroSerial.text.trim();
-    c.ua = null;
-    c.unidadeMedida = _controllerUnidadeMedida.text.trim();
-    c.userID = int.parse(Global.objUser.ID);
-    c.validade=null;
+        if(_controllerQtdProduto.text == "" )
+        {
+          _controllerQtdProduto.text="1";
+        }
 
-    var mapBipag = c.toJson();
-    var jsonz = json.encode(mapBipag);
-    print("@SYS aqui" + jsonz);
+        mBipagem c = new mBipagem();
+        c.codigoproduto=_controllerCodigoProduto.text.trim();
+        c.contagem= int.parse(widget.sContagemAtual);
+        c.enderecoid =int.parse(widget.sEnderecoID);
+        c.inventarioid = int.parse(widget.sInvetarioID.trim());
+        c.lote=_controllerLote.text.trim();
+        c.qtd = int.parse(_controllerQtdProduto.text);
+        c.serie = _controllerNumeroSerial.text.trim();
+        c.ua = null;
+        c.unidadeMedida = _controllerUnidadeMedida.text.trim();
+        c.userID = int.parse(Global.objUser.ID);
+        c.validade=null;
+
+        var mapBipag = c.toJson();
+        var jsonz = json.encode(mapBipag);
+        // print("@SYS aqui" + jsonz);
+        var response = await CallAPI().biparIntem(jsonz, Global.objUser.Token);
+
+        if (response.statusCode.toString() == "500") {
+            _MsgAlertErro("Erro",true);
+          return;
+        }
+
+        if (response.statusCode.toString() == "401") {
+          _MsgAlertErro("Acesso não autorizado",true);
+           return;
+        }
+
+        Map<String, dynamic> retorno = json.decode(response.body);
+        if (response.statusCode.toString() == "403") {
+          _MsgAlertErro(retorno["mensagem"].toString(),true);
+          if(retorno["pendencia"] != null && retorno["pendencia"].toString().length>1)
+            _focusPendencia(retorno["pendencia"].toString().toUpperCase());
+          return;
+        }
+
+        if (response.statusCode.toString() != "200") {
+          _MsgAlertErro("Busca apresentou inconsistência",true);
+           return;
+        }
+        _MsgAlertErro(retorno["mensagem"].toString(),false);
+        setState(() {
+          sQtdReturn = retorno["qtdbipada"].toString();
+          focusNodeProduto.requestFocus();
+        });
     } on Exception catch (exception) {
+      _MsgAlertErro(exception.toString(),true);
       setState(() {
-        print("@SYS aqui" + exception.toString()) ;
+        ColoForm = Colors.red;
       });
     } catch (error) {
+      _MsgAlertErro(error.toString(),true);
       setState(() {
-        print("@SYS aqui" + error.toString());
+        ColoForm = Colors.red;
       });
     }
+
+  }
+
+  _focusPendencia(String sPendencia)
+  {
+    setState(() {
+      ColoForm = Colors.orange;
+      if(sPendencia == "UNIDADEMEDIDA")
+      {
+        focusUnidadeMedida.requestFocus();
+      }
+      else if(sPendencia == "LOTE")
+      {
+        focusNodeLote.requestFocus();
+      }
+      else if(sPendencia == "SERIE")
+      {
+        focusNodeNumeroSerial.requestFocus();
+      }
+      else if(sPendencia == "VALIDADE")
+      {
+        focusNodeValdiade.requestFocus();
+      }
+    });
 
   }
 
@@ -90,8 +169,8 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
     return Scaffold(
      // resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text("BIPAGEM"),
-        backgroundColor: Colors.green,
+        title: Text("I: ${widget.sInvetarioID} C: ${widget.sContagemAtual}-${widget.sEndereco}"),
+        backgroundColor: ColoForm,
       ),
       body:  SingleChildScrollView(
         child: Container(
@@ -119,37 +198,25 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(top: 5),
+                padding: EdgeInsets.only(top: 1),
                 child: Center(
                   child: Text(
-                    "Inventário: ${widget.sInvetarioID}",
+                    _mensagemErro,
                     style: TextStyle(
-                        color: Colors.blue,
+                        color: ColoMsg,
                         fontSize: 15
                     ),
                   ),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(top: 5),
+                padding: EdgeInsets.only(top: 1),
                 child: Center(
                   child: Text(
-                    "Endereço: ${widget.sEndereco}",
+                    "Qtd: " + sQtdReturn,
                     style: TextStyle(
-                        color: Colors.blue,
-                        fontSize: 15
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 5),
-                child: Center(
-                  child: Text(
-                    "Contagem atual: ${widget.sContagemAtual}",
-                    style: TextStyle(
-                        color: Colors.blue,
-                        fontSize: 15
+                        color: ColoMsg,
+                        fontSize: 12
                     ),
                   ),
                 ),
@@ -164,7 +231,6 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
                 ),
                 onSubmitted: (String value){
                   _inputBipagem();
-                 // focusNodeQtd.requestFocus();
                 },
               ),
               TextField(
@@ -178,7 +244,20 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
                 decoration: InputDecoration(
                     labelText: "Quantidade"
                 ),
-
+                onSubmitted: (String value){
+                  _inputBipagem();
+                },
+              ),
+              TextField(
+                focusNode: focusUnidadeMedida,
+                controller: _controllerUnidadeMedida,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                    labelText: "Unidade de medida"
+                ),
+                onSubmitted: (String value){
+                  _inputBipagem();
+                },
               ),
               TextField(
                 focusNode: focusNodeNumeroSerial,
@@ -187,7 +266,9 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
                 decoration: InputDecoration(
                     labelText: "Número serial"
                 ),
-
+                onSubmitted: (String value){
+                  _inputBipagem();
+                },
               ),
               TextField(
                 focusNode: focusNodeLote,
@@ -196,7 +277,9 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
                 decoration: InputDecoration(
                     labelText: "Lote"
                 ),
-
+                onSubmitted: (String value){
+                  _inputBipagem();
+                },
               ),
               TextField(
                 focusNode: focusNodeValdiade,
@@ -205,7 +288,9 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
                 decoration: InputDecoration(
                     labelText: "Validade"
                 ),
-
+                onSubmitted: (String value){
+                  _inputBipagem();
+                },
               ),
               Padding(
                 padding: EdgeInsets.only(top: 16, bottom: 10),
