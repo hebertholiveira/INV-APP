@@ -76,11 +76,10 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
   _finalizarContagemSair() async
   {
     String sRet = await _finalizarContagem();
-    print("@SYS SAIR 22");
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => SelecaoEndereco(widget.sInvetarioID.trim(), sRet)),
-    );
+   // print("@SYS SAIR 22");
+
+    Navigator.pop(context);
+    Navigator.pop(context);
   }
 
   _finalizarContagem() async
@@ -166,17 +165,20 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
         setState(() {
           sQtdReturn = retorno["qtdbipada"].toString();
           focusNodeProduto.requestFocus();
+          _controllerCodigoProduto.text ="";
         });
     } on Exception catch (exception) {
       _MsgAlertErro(exception.toString(),true);
       setState(() {
         ColoForm = Colors.red;
       });
+      print("@ERRO " + exception.toString());
     } catch (error) {
       _MsgAlertErro(error.toString(),true);
       setState(() {
         ColoForm = Colors.red;
       });
+      print("@ERRO " + error.toString());
     }
 
   }
@@ -204,13 +206,18 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
     });
 
   }
-
+  _sair()
+  {
+   // Navigator.pushReplacement(BuildContext context, Route<T> newRoute);
+    //SystemNavigator.pop();
+  }
   _voltarForm()
   {
     // BuildContext dialogContext;
     showDialog(
       context: context,
-      builder: (context) => new AlertDialog(
+      useRootNavigator: false,
+      builder: (BuildContext  context) => new AlertDialog(
 
         title: new Text('O que deseja fazer?'),
        // content: new Text('O que deseja fazer?'),
@@ -221,10 +228,8 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
               child:  new FlatButton(
                 onPressed: () {
 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SelecaoEndereco(widget.sInvetarioID.trim(),null)),
-                  );
+                  Navigator.pop(context);
+                  Navigator.pop(context);
                 },
                 child: new Text('Sair e NÃO finalizar a contagem.'),
               ),
@@ -256,6 +261,7 @@ class _InventarioOperacaoState extends State<InventarioOperacao> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return new WillPopScope(
